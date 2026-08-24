@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H.S Human Spider Arachnid System Operations Portal</title>
+    <!-- Privacy Shield: Tells search engines not to index this secret terminal -->
+    <meta name="robots" content="noindex, nofollow"> 
+    <style>
+        :root {
+            --matrix-red: #ff0055;
+            --matrix-blue: #00ccff;
+            --bg-dark: #05050c;
+            --panel-bg: rgba(5, 10, 25, 0.85);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            overflow: hidden;
+        }
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .ui-layer {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screen {
+            display: none;
+            width: 90%;
+            max-width: 800px;
+            background: var(--panel-bg);
+            border: 2px solid var(--matrix-blue);
+            box-shadow: 0 0 25px rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        #hardwareGateScreen {
+            border-color: var(--matrix-red);
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.4);
+        }         h1, h2, h3 {
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        .blue-text { color: var(--matrix-blue); text-shadow: 0 0 5px var(--matrix-blue); }
+        .red-text { color: var(--matrix-red); text-shadow: 0 0 5px var(--matrix-red); }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--matrix-blue);
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--matrix-blue);
+            color: #fff;
+            border-radius: 4px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--matrix-red);
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.3);
+        }
+        .btn {
+            background: transparent;
+            border: 1px solid var(--matrix-blue);
+            color: var(--matrix-blue);
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            border-radius: 4px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: var(--matrix-blue);
+            color: #000;
+            box-shadow: 0 0 15px var(--matrix-blue);
+            font-weight: bold;
+        }
+
+        .btn-red { border-color: var(--matrix-red); color: var(--matrix-red); }
+        .btn-red:hover { background: var(--matrix-red); color: #000; box-shadow: 0 0 15px var(--matrix-red); }
+
+        .console-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--matrix-blue);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+
+        .spider-logo-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--matrix-blue);
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        .spider-logo-circle::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 18px;
+            background: var(--matrix-blue);
+            border-radius: 50%;
+            top: 16px;
+            left: 18px;
+        }
+
+        .module-body { text-align: left; margin-top: 15px; border-top: 1px dashed rgba(0, 204, 255, 0.4); padding-top: 20px; }
+        .telemetry-grid { border: 1px solid var(--matrix-blue); background: rgba(0, 204, 255, 0.05); padding: 15px; margin-top: 15px; border-radius: 4px; }
+        .telemetry-line { height: 2px; background: repeating-linear-gradient(90deg, transparent, transparent 10px, var(--matrix-blue) 10px, var(--matrix-blue) 20px); margin: 15px 0; opacity: 0.7; }
+        .voice-wave { display: flex; justify-content: center; align-items: center; gap: 4px; height: 40px; margin: 15px 0; }
+        .wave-bar { width: 4px; height: 100%; background-color: var(--matrix-blue); animation: bounce 0.8s infinite ease-in-out alternate; }
+        .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+        .project-item { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0, 204, 255, 0.3); padding: 12px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes bounce { from { transform: scaleY(0.1); } to { transform: scaleY(1); } }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+    <div class="ui-layer">
+
+        <!-- SCREEN 0: HARDWARE COMPLIANCE SYSTEM WALL -->
+        <div id="hardwareGateScreen" class="screen active">
+            <h1 class="red-text">System Verification</h1>
+            <p style="margin-bottom: 25px; line-height: 1.6;">Scanning local network browser environment architecture parameters...</p>
+            <button class="btn btn-red" onclick="runHardwareAudit()">Initialize Interface Hardware Scan</button>
+            <div id="hardwareStatusOutput" style="margin-top: 20px; font-weight: bold;"></div>
+        </div>
+
+        <!-- SCREEN 1: PORTAL LOGIN SECTOR GATEWAY -->
+        <div id="loginScreen" class="screen">
+            <h1 class="blue-text">8humanarachnid.net</h1>
+            <p style="color: #aaa; margin-bottom: 25px;">Enter system operation configuration parameters. Access validation requires zero errors.</p>
+            
+            <div class="form-group">
+                <label>H.S Human Spider Arachnid System (Name Input Field)</label>
+                
+            </div>
+            <div class="form-group">
+                <label>Access Code</label>
+                <input type="text" id="sysCodeInput" autocomplete="off" placeholder="Input unique 14-character security key">
+            </div>
+            <div class="form-group">
+                <label>Feature Tech Access Protocol</label>
+                <select id="sysDropdownInput">
+                    <option value="Select Option">-- SELECT PROTOCOL MODE --</option>
+                    <option value="Allow domain Tech">Allow domain Tech</option>
+                    <option value="System domain Tech">System domain Tech</option>
+                </select>
+            </div>
+            <button class="btn" onclick="validateCredentialsGateway()">Verify Secure Credentials</button>
+            <div id="loginErrorMsg" class="red-text" style="margin-top: 15px; font-weight: bold; min-height: 20px;"></div>
+        </div>
+        <!-- SCREEN 2: MASTER COCKPIT OPERATIONS MANAGEMENT CORE PANEL -->
+        <div id="dashboardScreen" class="screen" style="max-width: 900px;">
+            <div class="console-header">
+                <div class="logo-area">
+                    <div class="spider-logo-circle"></div>
+                    <h2 class="blue-text" style="font-size: 1.2rem; margin: 0;">H.S Human Spider Arachnid System</h2>
+                </div>
+                <button class="btn btn-red" style="padding: 6px 12px; font-size: 0.8rem;" onclick="location.reload()">Terminal Lock</button>
+            </div>
+
+            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #888;">Hardware verified. Status: Connected via Secure Network Link.</p>
+            
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn" onclick="switchSubDashboard('pairDevicePanel')">Pair Device</button>
+                <button class="btn" onclick="switchSubDashboard('suitTechPanel')">Create Suit Technology</button>
+                <button class="btn" onclick="switchSubDashboard('checkProjectsPanel')">Check Projects</button>
+            </div>
+            <!-- SUB-PANEL MODULE 1: VR COMPONENT CONNECTIVITY MATRIX -->
+            <div id="pairDevicePanel" class="module-body" style="display: none;">
+                <h3 class="blue-text">Device Network Pairing Matrix</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 15px;">Available active localized VR spatial streams tracking modules:</p>
+                <div id="deviceSelectionList">
+                    <div style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px; margin-bottom: 8px; border-left: 3px solid var(--matrix-blue);">
+                        <span>VR_Tracking_Node_Alpha-01</span>
+                        <button class="btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="triggerSimulatedPairRequest('VR_Tracking_Node_Alpha-01')">Link Node</button>
+                    </div>
+                </div>
+                <div id="simulatedHardwarePromptBox" style="display: none; border: 2px dashed var(--matrix-red); background: rgba(0,0,0,0.9); padding: 20px; margin-top: 15px; border-radius: 4px; text-align: center;">
+                    <p class="red-text" style="font-weight: bold; margin-bottom: 15px;">EXTERNAL SECURE NODE INBOUND CONNECTION PROMPT:</p>
+                    <p style="font-size: 1.1rem; margin-bottom: 20px;">"Would you like to pair with H.S Human Spider Arachnid System?"</p>
+                    <button class="btn" onclick="acceptPairingSequenceLink()">Accept Authorization Link</button>
+                    <button class="btn btn-red" onclick="cancelPairingSequenceLink()">Deny Access</button>
+                </div>
+                <div id="pairedDeviceOperationsConsole" style="display: none; margin-top: 15px;">
+                    <div style="background: rgba(0, 204, 255, 0.1); padding: 10px; border-radius: 4px; margin-bottom: 15px; font-weight: bold; color: var(--matrix-blue);">Status: Target Stream Node Linked.</div>
+                    <div class="form-group" style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 4px;">
+                        <label style="margin: 0; flex-grow: 1; cursor: pointer;" for="operatorTelemetryToggle">Master Operator Override: Enable Stat Device Link</label>
+                        <input type="checkbox" id="operatorTelemetryToggle" style="width: 22px; height: 22px; cursor: pointer;" onchange="toggleBlueTelemetryLines(this)">
+                    </div>
+                    <div id="blueTelemetryGridDisplay" class="telemetry-grid" style="display: none;">
+                        <div class="blue-text" style="font-size: 0.85rem; font-weight: bold;">LIVE CRITICAL DATA STREAM:</div>
+                        <div class="telemetry-line"></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem;">
+                            <div>BIOMETRIC SENSOR FEED: <span class="blue-text" id="liveBpmReadout">72</span> BPM</div>
+                            <div>SPATIAL SYNC SCALE: <span class="blue-text">99.84%</span> ACC</div>
+                        </div>
+                        <div class="telemetry-line"></div>
+                    </div>
+                    <div class="telemetry-grid">
+                        <div class="blue-text" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 10px;">SECURE AUDIO CHANNELS:</div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <button id="voiceChatCtrlBtn" class="btn" onclick="toggleSimulatedVoiceCommsChannel()">Establish Audio Channel</button>
+                            <span id="voiceChannelStateLabel" style="font-size: 0.9rem; color: #888;">Channel State: OFFLINE</span>
+                        </div>
+                        <div id="voiceWaveformVisualizer" class="voice-wave" style="display: none;">
+                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- SUB-PANEL MODULE 2: SUIT DEVELOPMENT FABRICATION BLUEPRINT LAB -->
+            <div id="suitTechPanel" class="module-body" style="display: none;">
+                <h3 class="blue-text">R&D Lab: Fabrication Workshop</h3>
+                <div style="background: rgba(0,0,0,0.4); border: 1px dashed var(--matrix-blue); padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                    <label>AI Material Element Composition Assistant</label>
+                    <div style="display: flex; gap: 10px; margin-top: 5px; margin-bottom: 10px;">
+                        <input type="text" id="aiMaterialInput" placeholder="e.g. Carbon Nanotubes, Graphene Matrix">
+                        <button class="btn" style="white-space: nowrap;" onclick="processAiMaterialAnalysis()">Ask AI for Results</button>
+                    </div>
+                    <div id="aiAnalysisOutputLog" style="font-size: 0.85rem; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 4px; color: #00ff55; border: 1px solid rgba(0,255,85,0.2);">Awaiting element composition data parameters...</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(0,204,255,0.2); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <div class="blue-text" style="font-weight: bold; margin-bottom: 10px;">3D Web Shooter Configurator</div>
+                    <div class="form-group">
+                        <label>Custom Design Asset Designation / Suit Label Name</label>
+                        <input type="text" id="suitDesignProjectNameInput" placeholder="e.g., Mark IV Stealth Grid Prototype">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div>
+                            <label>Nozzle Diameter Type</label>
+                            <select id="nozzleSelectionSetting">
+                                <option value="0.4mm Micro Stream">0.4mm Micro Stream</option>
+                                <option value="Variable Diffusion Mesh">Variable Diffusion Mesh</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Internal Pressure Core Upgrade</label>
+                            <select id="pressureCoreSelectionSetting">
+                                <option value="Standard Pneumatic Pump">Standard Pneumatic Pump</option>
+                                <option value="Magnetic Induction Valve">Magnetic Induction Valve</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="exportSimulated3DDataFile()">Get Technology (Compile 3D Architecture Package)</button>
+                    <div id="3dCompilationLogOutput" style="margin-top: 10px; font-size: 0.85rem; color: #aaa;"></div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(0,204,255,0.2); padding: 15px; border-radius: 4px;">
+                    <div class="blue-text" style="font-weight: bold; margin-bottom: 10px;">Procurement Project Link Compiler</div>
+                    <label>Paste Component Vendor Web Links (Amazon Components URLs)</label>
+                    <textarea id="procurementVendorLinksTextarea" rows="2" style="margin-top: 5px; margin-bottom: 10px; resize: none;" placeholder="https://amazon.com..."></textarea>
+                    <button class="btn btn-red" onclick="saveActiveProjectToMasterDatabase()">Add to Projects Vault</button>
+                    <div id="projectPersistenceFeedbackMsg" style="margin-top: 10px; font-size: 0.85rem; color: #00ccff;"></div>
+                </div>
+            </div>
+
+            <!-- SUB-PANEL MODULE 3: SAVED DATABASE VAULT SYSTEM -->
+            <div id="checkProjectsPanel" class="module-body" style="display: none;">
+                <h3 class="blue-text">Project Archive Storage Repository</h3>
+                <div id="projectDatabaseVaultListArea">
+                    <div style="color: #666; font-style: italic; text-align: center; padding: 20px;">No custom designs stored in local active database. Go to the Fabrication Workshop room to create elements.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const alphabet = "0101010101X█▓▒░HSHUMANSPIDERARACHNIDSYSTEM294KS47S3TR582";
+        const fontSize = 14;
+        const columns = Math.floor(width / fontSize);
+        const rainDrops = Array(columns).fill(1);
+
+        function drawMatrixStream() {
+            ctx.fillStyle = 'rgba(5, 5, 12, 0.08)';
+            ctx.fillRect(0, 0, width, height);
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 0, 85, 0.4)' : 'rgba(0, 204, 255, 0.6)';
+                ctx.font = fontSize + 'px monospace';
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                if (rainDrops[i] * fontSize > height && Math.random() > 0.975) rainDrops[i] = 0;
+                rainDrops[i]++;
+            }
+        }
+        let matrixIntervalId = setInterval(drawMatrixStream, 33);
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        let savedProjectsMemoryCache = [];
+        let activelyTargetedSelectionPairingNode = "";
+        let telemetryHeartbeatLoopIntervalId = null;
+        function runHardwareAudit() {
+            const statusDiv = document.getElementById('hardwareStatusOutput');
+            statusDiv.innerHTML = "<span class='blue-text'>Running security sweep... analyzing system signatures.</span>";
+            setTimeout(() => {
+                const ua = navigator.userAgent.toLowerCase();
+                if (ua.includes('macintosh') || ua.includes('apple') || ua.includes('vision pro')) {
+                    statusDiv.innerHTML = "<span class='red-text'>CRITICAL SECURITY BLOCK - CRITICAL HARDWARE ERROR:<br>ACCESS DENIED: APPLE HARDWARE IS UNAUTHORIZED ON THIS GATEWAY LINK REGION.</span>";
+                    return;
+                }
+                if (navigator.xr || ua.includes('oculus') || ua.includes('quest') || ua.includes('android')) {
+                    statusDiv.innerHTML = "<span style='color: #00ff55;'>HARDWARE AUDIT COMPLIANT: VR SUBSYSTEM LINK CONFIRMED. REDIRECTING ENTRANCE PORTAL...</span>";
+                    setTimeout(() => transitionViewActiveScreenState('hardwareGateScreen', 'loginScreen'), 1500);
+                } else {
+                    statusDiv.innerHTML = "<span class='red-text'>CRITICAL COMPLIANCE FAILURE ERROR:<br>ACCESS DENIED: VR HARDWARE INTERFACE SUBSYSTEM MODULE NOT FOUND. ACCESSIBILITY BLOCKED.</span>";
+                }
+            }, 1000);
+        }
+
+        function validateCredentialsGateway() {
+            const name = document.getElementById('sysNameInput').value.trim();
+            const code = document.getElementById('sysCodeInput').value.trim();
+            const drop = document.getElementById('sysDropdownInput').value;
+            const err = document.getElementById('loginErrorMsg');
+
+            if (name !== "H.S Human Spider Arachnid System" || code !== "294KS47S3TR582" || drop !== "Allow domain Tech") {
+                err.innerHTML = "SECURITY CREDENTIALS INTEGRITY DRIFT DETECTED: ACCESS SECTOR DENIED.";
+                return;
+            }
+            err.innerHTML = "<span style='color:#00ff55;'>ACCESS GRANTED. INITIALIZING CONSOLE TERMINAL DASHBOARD PANEL...</span>";
+            setTimeout(() => {
+                transitionViewActiveScreenState('loginScreen', 'dashboardScreen');
+                switchSubDashboard('pairDevicePanel');
+            }, 1200);
+        }
+
+        function transitionViewActiveScreenState(hideId, showId) {
+            document.getElementById(hideId).classList.remove('active');
+            document.getElementById(showId).classList.add('active');
+        }
+
+        function switchSubDashboard(panelId) {
+            ['pairDevicePanel', 'suitTechPanel', 'checkProjectsPanel'].forEach(id => {
+                document.getElementById(id).style.display = (id === panelId) ? 'block' : 'none';
+            });
+        }
+        function triggerSimulatedPairRequest(nodeName) {
+            activelyTargetedSelectionPairingNode = nodeName;
+            document.getElementById('deviceSelectionList').style.display = 'none';
+            document.getElementById('simulatedHardwarePromptBox').style.display = 'block';
+        }
+
+        function cancelPairingSequenceLink() {
+            document.getElementById('simulatedHardwarePromptBox').style.display = 'none';
+            document.getElementById('deviceSelectionList').style.display = 'block';
+        }
+
+        function acceptPairingSequenceLink() {
+            document.getElementById('simulatedHardwarePromptBox').style.display = 'none';
+            document.getElementById('pairedDeviceOperationsConsole').style.display = 'block';
+        }
+
+        function toggleBlueTelemetryLines(cb) {
+            const display = document.getElementById('blueTelemetryGridDisplay');
+            if (cb.checked) {
+                display.style.display = 'block';
+                if (!telemetryHeartbeatLoopIntervalId) {
+                    telemetryHeartbeatLoopIntervalId = setInterval(() => {
+                        document.getElementById('liveBpmReadout').innerText = Math.floor(Math.random() * (88 - 65 + 1)) + 65;
+                    }, 1200);
+                }
+            } else {
+                display.style.display = 'none';
+                if (telemetryHeartbeatLoopIntervalId) { clearInterval(telemetryHeartbeatLoopIntervalId); telemetryHeartbeatLoopIntervalId = null; }
+            }
+        }
+
+        function toggleSimulatedVoiceCommsChannel() {
+            const btn = document.getElementById('voiceChatCtrlBtn');
+            const label = document.getElementById('voiceChannelStateLabel');
+            const vis = document.getElementById('voiceWaveformVisualizer');
+            if (label.innerText.includes('OFFLINE')) {
+                label.innerText = "Channel State: LINKED ACTIVE"; label.style.color = "#00ff55";
+                btn.innerText = "Disconnect Audio Stream Link"; vis.style.display = 'flex';
+            } else {
+                label.innerText = "Channel State: OFFLINE"; label.style.color = "#888";
+                btn.innerText = "Establish Audio Channel"; vis.style.display = 'none';
+            }
+        }
+
+        function processAiMaterialAnalysis() {
+            const mat = document.getElementById('aiMaterialInput').value.trim();
+            const log = document.getElementById('aiAnalysisOutputLog');
+            if (!mat) { log.innerText = "ERROR: Empty raw element input."; log.style.color = "var(--matrix-red)"; return; }
+            log.innerText = `Analyzing data for: [ ${mat} ]... Please stand by.`; log.style.color = "var(--matrix-blue)";
+            setTimeout(() => {
+                log.innerHTML = `ANALYSIS COMPLETED:<br>> STRUCTURAL MATRIX VARIANT VALIDATED.<br>> RESULT: 100% COMPATIBLE AND AUTHORIZED FOR PRODUCTION.`;
+                log.style.color = "#00ff55";
+            }, 1000);
+        }
+
+        function exportSimulated3DDataFile() {
+            const title = document.getElementById('suitDesignProjectNameInput').value.trim() || "Custom Prototype";
+            const nozzle = document.getElementById('nozzleSelectionSetting').value;
+            const core = document.getElementById('pressureCoreSelectionSetting').value;
+            const out = document.getElementById('3dCompilationLogOutput');
+            out.innerHTML = "Compiling mesh structures data maps...";
+            setTimeout(() => {
+                const raw = `# H.S System Modular 3D Schematic Config File\n# Title: ${title}\n# Nozzle: ${nozzle}\n# Valve: ${core}\o WebShooter_Part_A\nv 0.12 1.54 -0.92\nf 1 2 3\n# PRINT MODULARLY AS SEPARATE PARTS.`;
+                const blob = new Blob([raw], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.download = `${title.replace(/\s+/g, '_')}_3D_Component.obj`;
+                a.href = window.URL.createObjectURL(blob);
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                out.innerHTML = `<span style='color: #00ff55;'>SUCCESS: Modular 3D .obj schematic file downloaded! Print parts separately.</span>`;
+            }, 1200);
+        }
+
+        function saveActiveProjectToMasterDatabase() {
+            const title = document.getElementById('suitDesignProjectNameInput').value.trim() || "Custom Prototype";
+            const snap = {
+                id: Date.now(), title: title,
+                nozzle: document.getElementById('nozzleSelectionSetting').value,
+                pressureCore: document.getElementById('pressureCoreSelectionSetting').value,
+                vendorLinks: document.getElementById('procurementVendorLinksTextarea').value.trim()
+            };
+            savedProjectsMemoryCache.push(snap);
+            refreshProjectVaultSubpanelViewDomTree();
+            document.getElementById('projectPersistenceFeedbackMsg').innerHTML = "Project snapshot pushed to Archive Vault.";
+            setTimeout(() => { document.getElementById('projectPersistenceFeedbackMsg').innerHTML = ""; }, 2500);
+        }
+
+        function refreshProjectVaultSubpanelViewDomTree() {
+            const area = document.getElementById('projectDatabaseVaultListArea');
+            if (savedProjectsMemoryCache.length === 0) {
+                area.innerHTML = `<div style="color: #666; font-style: italic; text-align: center; padding: 20px;">No custom designs stored.</div>`;
+                return;
+            }
+            area.innerHTML = "";
+            savedProjectsMemoryCache.forEach(p => {
+                const d = document.createElement('div'); d.className = "project-item";
+                d.innerHTML = `<div style="text-align: left;"><div class="blue-text" style="font-weight: bold;">${p.title}</div><div style="font-size:0.75rem; color:#aaa;">Specs: [Nozzle: ${p.nozzle} | Core: ${p.pressureCore}]</div></div><div><button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick="loadStoredProjectBackIntoEditorWorkspace(${p.id})">Edit</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="purgeSelectedProjectFromDatabaseNode(${p.id})">Purge</button></div>`;
+                area.appendChild(d);
+            });
+        }
+
+        function loadStoredProjectBackIntoEditorWorkspace(id) {
+            const p = savedProjectsMemoryCache.find(x => x.id === id);
+            if (p) {
+                document.getElementById('suitDesignProjectNameInput').value = p.title;
+                document.getElementById('nozzleSelectionSetting').value = p.nozzle;
+                document.getElementById('pressureCoreSelectionSetting').value = p.pressureCore;
+                document.getElementById('procurementVendorLinksTextarea').value = p.vendorLinks;
+                switchSubDashboard('suitTechPanel');
+            }
+        }
+
+        function purgeSelectedProjectFromDatabaseNode(id) {
+            savedProjectsMemoryCache = savedProjectsMemoryCache.filter(x => x.id !== id);
+            refreshProjectVaultSubpanelViewDomTree();
+        }
+    </script>
+</body>
+</html>
